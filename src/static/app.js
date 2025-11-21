@@ -20,16 +20,18 @@ document.addEventListener("DOMContentLoaded", () => {
 
         const spotsLeft = details.max_participants - details.participants.length;
 
-        // --- 参加者リストのHTMLを生成 ---
+        // --- 参加者リストのHTMLを生成（ul/liを使わず、削除ボタン付き） ---
         let participantsHTML = "";
         if (details.participants.length > 0) {
-          participantsHTML = `
-            <ul class="participants-list">
-              ${details.participants.map(
-                (p) => `<li>${p}</li>`
-              ).join("")}
-            </ul>
-          `;
+          participantsHTML = `<div class="participants-list">` +
+            details.participants.map(
+              (p) => `
+                <span class="participant-item">
+                  <span class="participant-email">${p}</span>
+                  <button class="remove-participant-btn" title="Remove" data-activity="${name}" data-email="${p}">🗑️</button>
+                </span>`
+            ).join("") +
+            `</div>`;
         } else {
           participantsHTML = `<div class="participants-list empty">No participants yet</div>`;
         }
@@ -52,6 +54,28 @@ document.addEventListener("DOMContentLoaded", () => {
         option.value = name;
         option.textContent = name;
         activitySelect.appendChild(option);
+      });
+
+      // 削除ボタンにイベントリスナーを追加
+      document.querySelectorAll('.remove-participant-btn').forEach(btn => {
+        btn.addEventListener('click', async (e) => {
+          const activity = btn.getAttribute('data-activity');
+          const email = btn.getAttribute('data-email');
+          if (!confirm(`${email} を ${activity} から削除しますか？`)) return;
+          try {
+            const response = await fetch(`/activities/${encodeURIComponent(activity)}/unregister?email=${encodeURIComponent(email)}`, {
+              method: 'POST',
+            });
+            const result = await response.json();
+            if (response.ok) {
+              fetchActivities(); // 再描画
+            } else {
+              alert(result.detail || 'Failed to remove participant.');
+            }
+          } catch (err) {
+            alert('Error removing participant.');
+          }
+        });
       });
     } catch (error) {
       activitiesList.innerHTML = "<p>Failed to load activities. Please try again later.</p>";
@@ -80,6 +104,7 @@ document.addEventListener("DOMContentLoaded", () => {
         messageDiv.textContent = result.message;
         messageDiv.className = "success";
         signupForm.reset();
+        fetchActivities(); // 参加者リストを即時更新
       } else {
         messageDiv.textContent = result.detail || "An error occurred";
         messageDiv.className = "error";
