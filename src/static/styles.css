@@ -155,8 +155,6 @@ footer {
 }
 
 .participants-list {
-  margin: 8px 0 0 18px;
-  padding-left: 0;
   display: flex;
   flex-wrap: wrap;
   gap: 0.5em;
