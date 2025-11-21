@@ -189,12 +189,6 @@ footer {
   background: #ffeaea;
 }
 .participants-list.empty {
-  color: #aaa;
-  font-style: italic;
-}
-}
-
-.participants-list.empty {
   color: #888;
   font-style: italic;
   margin-left: 0;
